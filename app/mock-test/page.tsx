@@ -1,0 +1,102 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function MockTestEntryPage() {
+  const router = useRouter();
+  const [rollNo, setRollNo] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleStart = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!rollNo.trim()) {
+      alert("Please enter roll number");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch("/api/mock-test/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rollNo }), // ✔ only rollNo is passed
+      });
+
+      const data = await res.json(); // ✔ read JSON once
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to start mock test");
+      }
+
+      router.push(`/mock-test/${data.attemptId}`);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Failed to start test");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          MahaRERA Mock Test
+        </h1>
+
+        <form onSubmit={handleStart} className="space-y-4">
+          {/* ROLL NUMBER */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">
+              Registration Number
+            </label>
+            <input
+              type="text"
+              value={rollNo}
+              onChange={(e) => setRollNo(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+              placeholder="Enter any roll number"
+            />
+          </div>
+
+          {/* PASSWORD */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">
+              Password (any)
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border rounded px-3 py-2"
+              placeholder="Enter any password"
+            />
+          </div>
+
+          {/* INFO */}
+          <div className="mt-4 p-3 border rounded bg-gray-50 text-sm">
+            <p className="font-semibold mb-1">📌 Instructions</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>50 Questions</li>
+              <li>60 Minutes</li>
+              <li>No negative marking</li>
+              <li>Answers can be changed before submit</li>
+            </ul>
+          </div>
+
+          {/* BUTTON */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-4 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700 disabled:bg-gray-400"
+          >
+            {loading ? "Starting..." : "Start Mock Test"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
