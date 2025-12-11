@@ -4,7 +4,6 @@ import { getSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // Get session
     const session = await getSession();
     
     if (!session || !session.id) {
@@ -14,7 +13,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Parse request body
     const { transactionId, notes } = await req.json();
 
     if (!transactionId?.trim()) {
@@ -24,24 +22,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const planType = "PLAN_500";
-    const amount = 500;
+    const amount = 750;        // ⭐ FIXED PREMIUM AMOUNT
+    const planType = "PREMIUM"; // ⭐ Only one plan
 
-    console.log("📝 Creating payment proof for user:", session.id);
-
-    // Create payment proof
     const payment = await prisma.paymentProof.create({
       data: {
-        userId: session.id,           // ✅ session.id is a String (cuid)
-        amount: amount,
-        planType: planType,
+        userId: session.id,
+        amount,
+        planType,
         transactionId: transactionId.trim(),
         notes: notes?.trim() || null,
         status: "PENDING",
       },
     });
-
-    console.log("✅ Payment proof created successfully:", payment.id);
 
     return NextResponse.json({
       success: true,
@@ -49,30 +42,24 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (err: any) {
-    console.error("❌ Payment submit error:", err);
-    console.error("Error details:", {
-      code: err.code,
-      message: err.message,
-      meta: err.meta,
-    });
+    console.error("Payment submit error:", err);
     
-    // Handle specific Prisma errors
     if (err.code === 'P2003') {
       return NextResponse.json(
-        { error: "User not found in database. Please logout and login again." },
+        { error: "User not found. Please logout and login again." },
         { status: 400 }
       );
     }
 
     if (err.code === 'P2002') {
       return NextResponse.json(
-        { error: "This transaction ID has already been submitted." },
+        { error: "This transaction ID is already submitted." },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: err.message || "Failed to submit payment. Please try again." },
+      { error: "Failed to submit payment." },
       { status: 500 }
     );
   }

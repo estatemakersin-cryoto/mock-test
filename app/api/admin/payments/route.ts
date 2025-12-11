@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
 
-export async function GET(req: NextRequest) {
+// =======================================
+// GET → Fetch LAST 100 payment submissions
+// =======================================
+export async function GET() {
   try {
     await requireAdmin();
 
@@ -16,7 +19,6 @@ export async function GET(req: NextRequest) {
             fullName: true,
             email: true,
             mobile: true,
-            registrationNo: true,
             packagePurchased: true,
             testsUnlocked: true,
             testsCompleted: true,
@@ -36,14 +38,21 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ==============================
-// POST → APPROVE / REJECT
-// ==============================
+// =======================================
+// POST → APPROVE or REJECT PAYMENT PROOF
+// =======================================
 export async function POST(req: NextRequest) {
   try {
     await requireAdmin();
 
     const { paymentId, action } = await req.json();
+
+    if (!paymentId || !action) {
+      return NextResponse.json(
+        { error: "Invalid request" },
+        { status: 400 }
+      );
+    }
 
     const payment = await prisma.paymentProof.findUnique({
       where: { id: paymentId },
@@ -63,16 +72,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ---------------- REJECT ----------------
+    // =============================
+    // REJECT PAYMENT
+    // =============================
     if (action === "REJECT") {
       await prisma.paymentProof.update({
         where: { id: paymentId },
         data: { status: "REJECTED" },
       });
+
       return NextResponse.json({ success: true });
     }
 
-    // ---------------- APPROVE ----------------
+    // =============================
+    // APPROVE PAYMENT (ONE PLAN ONLY)
+    // =============================
     const user = await prisma.user.findUnique({
       where: { id: payment.userId },
     });
@@ -84,29 +98,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // NEW SINGLE PLAN LOGIC — Always unlock full access
-    const totalTests = 5;
-    const testsCompleted = user.testsCompleted || 0;
-
+    // You have ONE plan → set PREMIUM access
     await prisma.user.update({
       where: { id: user.id },
       data: {
         packagePurchased: true,
         packagePurchasedDate: new Date(),
 
-        // RESET TEST ACCESS FOR PREMIUM
+        // PREMIUM PLAN ACCESS
         testsUnlocked: 5,
         testsCompleted: 0,
         testsRemaining: 5,
       },
     });
 
-    // Mark payment approved
+    // mark this payment as APPROVED
     await prisma.paymentProof.update({
       where: { id: paymentId },
       data: { status: "APPROVED" },
     });
-
 
     return NextResponse.json({ success: true });
   } catch (err) {

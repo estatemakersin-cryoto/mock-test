@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const ADMIN_WA_1 = "918850150878";
-const ADMIN_WA_2 = "919699091086";
+// UPDATED ADMIN NUMBERS
+const ADMIN_WA_1 = "919892357558"; // Ramraje Bhosale
+const ADMIN_WA_2 = "919699091086"; // Vaishali Kamath
 
 const UPI_ID = "vaishkamath@oksbi";
 const UPI_NAME = "Vaishali Kamath";
@@ -18,7 +19,8 @@ export default function PaymentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  const amount = 750; // FIXED PREMIUM PRICE
+  const amount = 750;
+  const planType = "PREMIUM";
 
   const [transactionId, setTransactionId] = useState("");
   const [notes, setNotes] = useState("");
@@ -47,7 +49,7 @@ export default function PaymentPage() {
     e.preventDefault();
 
     if (!transactionId.trim()) {
-      alert("Please enter UPI Transaction ID / Reference No.");
+      alert("Please enter your UPI Transaction ID.");
       return;
     }
 
@@ -57,7 +59,12 @@ export default function PaymentPage() {
       const res = await fetch("/api/payment/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transactionId, notes }),
+        body: JSON.stringify({
+          amount,
+          planType,
+          transactionId,
+          notes,
+        }),
       });
 
       const data = await res.json();
@@ -69,15 +76,13 @@ export default function PaymentPage() {
 
       setSuccess(true);
     } catch {
-      alert("Something went wrong. Please try again.");
+      alert("Something went wrong.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ------------------------------
-  // LOADING STATE
-  // ------------------------------
+  // LOADING
   if (loadingUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -86,9 +91,7 @@ export default function PaymentPage() {
     );
   }
 
-  // ------------------------------
   // SUCCESS SCREEN
-  // ------------------------------
   if (success) {
     const msg =
       `Payment submitted for EstateMakers MahaRERA ₹750 Plan:\n\n` +
@@ -98,7 +101,6 @@ export default function PaymentPage() {
       `Amount: ₹${amount}\n` +
       `UPI Ref: ${transactionId}\n\n` +
       `Please verify and activate.`;
-
 
     const wa1 = `https://wa.me/${ADMIN_WA_1}?text=${encodeURIComponent(msg)}`;
     const wa2 = `https://wa.me/${ADMIN_WA_2}?text=${encodeURIComponent(msg)}`;
@@ -119,7 +121,7 @@ export default function PaymentPage() {
             target="_blank"
             className="block w-full px-4 py-2 mb-3 bg-blue-600 text-white rounded"
           >
-            📤 Send to Admin 1 (8850150878)
+            📤 Send to Ramraje Bhosale (9892357558)
           </a>
 
           <a
@@ -127,7 +129,7 @@ export default function PaymentPage() {
             target="_blank"
             className="block w-full px-4 py-2 mb-3 bg-blue-600 text-white rounded"
           >
-            📤 Send to Admin 2 (9699091086)
+            📤 Send to Vaishali Kamath (9699091086)
           </a>
 
           <button
@@ -141,9 +143,7 @@ export default function PaymentPage() {
     );
   }
 
-  // ------------------------------
   // MAIN PAYMENT PAGE
-  // ------------------------------
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-blue-900 text-white px-6 py-4 shadow">
@@ -168,7 +168,6 @@ export default function PaymentPage() {
           </h2>
 
           <div className="grid md:grid-cols-2 gap-6 items-center">
-            {/* QR BLOCK */}
             <div className="border rounded-lg p-4 bg-gray-50 text-center">
               <p className="font-semibold mb-2">Scan & Pay</p>
 
@@ -184,17 +183,12 @@ export default function PaymentPage() {
                 <p><strong>Mobile:</strong> {UPI_MOBILE}</p>
                 <p><strong>Amount:</strong> ₹{amount}</p>
               </div>
-
-              <p className="text-xs text-gray-500 mt-2">
-                Make sure you pay the exact amount before submitting.
-              </p>
             </div>
 
-            {/* INFO BLOCK */}
             <div className="bg-blue-50 border-l-4 border-blue-500 rounded p-4 text-sm text-gray-700">
               <p className="font-semibold mb-2">Important:</p>
               <ul className="space-y-1 list-disc pl-4">
-                <li>Complete payment through GPay / PhonePe / Paytm.</li>
+                <li>Pay using GPay / PhonePe / Paytm.</li>
                 <li>Copy the UPI Reference / Transaction ID.</li>
                 <li>Submit the details below for activation.</li>
               </ul>
