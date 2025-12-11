@@ -18,13 +18,18 @@ export default function DashboardPage() {
   const [feedbackThanks, setFeedbackThanks] = useState("");
   const [feedbackList, setFeedbackList] = useState<string[]>([]);
 
+  // REFER FRIENDS STATES
+  const [showRefer, setShowRefer] = useState(false);
+  const [friends, setFriends] = useState([{ name: "", mobile: "" }]);
+  const [referThanks, setReferThanks] = useState("");
+
   useEffect(() => {
     loadUser();
   }, []);
 
-  // ------------------------------
+  // --------------------------------------
   // LOAD USER + PAYMENT STATUS
-  // ------------------------------
+  // --------------------------------------
   const loadUser = async () => {
     try {
       const res = await fetch("/api/auth/verify", { cache: "no-store" });
@@ -33,6 +38,7 @@ export default function DashboardPage() {
       const data = await res.json();
       setUser(data.user);
 
+      // Fetch latest payment
       const payRes = await fetch("/api/payment/latest", { cache: "no-store" });
       if (payRes.ok) {
         const payData = await payRes.json();
@@ -45,26 +51,9 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
-  // ------------------------------
-  // BUSINESS LOGIC
-  // ------------------------------
-  const hasPremium = user.packagePurchased === true;
-
-  const TOTAL_TESTS = 5;
-  const testsCompleted = user.testsCompleted ?? 0;
-  const testsRemaining = hasPremium ? TOTAL_TESTS - testsCompleted : 0;
-
-  // ----------------------
-  // FEEDBACK SUBMIT LOGIC
-  // ----------------------
+  // --------------------------------------
+  // FEEDBACK SUBMIT
+  // --------------------------------------
   const handleFeedbackSubmit = () => {
     if (!feedback.trim()) return;
 
@@ -83,6 +72,52 @@ export default function DashboardPage() {
     setFeedback("");
   };
 
+  // --------------------------------------
+  // REFER FRIENDS - SEND WA INVITE
+  // --------------------------------------
+  const handleSendInvite = (friend: { name: string; mobile: string }) => {
+    if (!friend.name.trim() || !friend.mobile.trim()) return;
+
+    const msg =
+      `Hi ${friend.name},\n\n` +
+      `I'm preparing for the MahaRERA Real Estate Agent Exam using EstateMakers Mock Tests.\n` +
+      `They provide:\n` +
+      `✔ 5 Mock Tests\n` +
+      `✔ 400+ Practice MCQs\n` +
+      `✔ Revision Materials\n` +
+      `✔ Real Exam Pattern\n\n` +
+      `Join before the seats close.\n\n` +
+      `Register here: https://estatemakers.in\n\n` +
+      `- ${user.fullName} (${user.mobile})`;
+
+    const wa = `https://wa.me/${friend.mobile}?text=${encodeURIComponent(msg)}`;
+    window.open(wa, "_blank");
+
+    setReferThanks("Invite sent successfully!");
+    setTimeout(() => setReferThanks(""), 3000);
+  };
+
+  // --------------------------------------
+  // LOADING
+  // --------------------------------------
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  // BUSINESS LOGIC
+  const hasPremium = user.packagePurchased === true;
+
+  const TOTAL_TESTS = 5;
+  const testsCompleted = user.testsCompleted ?? 0;
+  const testsRemaining = hasPremium ? TOTAL_TESTS - testsCompleted : 0;
+
+  // --------------------------------------
+  // PAGE UI
+  // --------------------------------------
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -103,7 +138,7 @@ export default function DashboardPage() {
 
       <div className="max-w-7xl mx-auto p-6">
 
-        {/* PAYMENT PENDING SECTION */}
+        {/* PAYMENT PENDING */}
         {paymentStatus === "PENDING" && !hasPremium && (
           <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded mb-6">
             <h2 className="text-lg font-bold text-yellow-800">
@@ -112,7 +147,7 @@ export default function DashboardPage() {
             <p className="text-sm text-yellow-700 mt-1">
               Step 1: Join the official WhatsApp group  
               <br />
-              Step 2: Send your payment screenshot with name & mobile number.
+              Step 2: Send your payment screenshot with your name & mobile number.
             </p>
 
             <div className="flex flex-col gap-3 mt-4">
@@ -141,7 +176,7 @@ export default function DashboardPage() {
 
           <div className="grid md:grid-cols-2 gap-4">
 
-            {/* REVISION CARD */}
+            {/* REVISION */}
             <div className="bg-white/20 rounded-lg p-5 text-center">
               <div className="text-4xl mb-2">📖</div>
               <div className="font-semibold text-lg">Revision Center</div>
@@ -158,7 +193,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* MOCK TEST CARD */}
+            {/* MOCK TESTS */}
             <div className="bg-white/20 rounded-lg p-5 text-center">
               <div className="text-4xl mb-2">📝</div>
               <div className="font-semibold text-lg">Mock Tests</div>
@@ -205,12 +240,9 @@ export default function DashboardPage() {
               <p className="text-3xl font-bold text-blue-600">
                 {testsRemaining}/{TOTAL_TESTS}
               </p>
-              <p className="text-xs text-gray-500">
-                Completed: {testsCompleted}
-              </p>
+              <p className="text-xs text-gray-500">Completed: {testsCompleted}</p>
             </div>
 
-            {/* BUY BUTTON */}
             <div className="flex flex-col justify-center">
               {!hasPremium && paymentStatus === "NONE" && (
                 <button
@@ -220,11 +252,8 @@ export default function DashboardPage() {
                   Buy Premium – ₹750
                 </button>
               )}
-
               {paymentStatus === "PENDING" && !hasPremium && (
-                <p className="text-center text-gray-600">
-                  Awaiting Admin Approval...
-                </p>
+                <p className="text-center text-gray-600">Awaiting Admin Approval...</p>
               )}
             </div>
           </div>
@@ -261,16 +290,14 @@ export default function DashboardPage() {
                 </button>
 
                 {feedbackThanks && (
-                  <p className="mt-2 text-green-700 font-semibold flex items-center gap-2">
+                  <p className="mt-2 text-green-700 font-semibold">
                     👍 {feedbackThanks}
                   </p>
                 )}
 
                 {feedbackList.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="font-semibold text-gray-700 mb-2">
-                      ⭐ Top Feedbacks
-                    </h4>
+                    <h4 className="font-semibold text-gray-700 mb-2">⭐ Top Feedbacks</h4>
                     <ul className="space-y-2">
                       {feedbackList.map((fb, idx) => (
                         <li
@@ -282,6 +309,77 @@ export default function DashboardPage() {
                       ))}
                     </ul>
                   </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* REFER FRIENDS SECTION */}
+          <div className="mt-8 border rounded-lg p-4 bg-gray-50">
+            <button
+              onClick={() => setShowRefer((s) => !s)}
+              className="w-full flex justify-between items-center font-semibold text-lg text-green-700"
+            >
+              🤝 Refer & Earn (Get ₹50 Credit)
+              <span>{showRefer ? "▲" : "▼"}</span>
+            </button>
+
+            {showRefer && (
+              <div className="mt-3">
+
+                <p className="text-sm text-gray-600 mb-3">
+                  Invite friends preparing for MahaRERA Exam.  
+                  You earn <strong>₹50 Credits</strong> for each successful registration.
+                </p>
+
+                {friends.map((friend, index) => (
+                  <div key={index} className="flex gap-2 mb-3 bg-white p-3 rounded shadow">
+                    <input
+                      type="text"
+                      placeholder="Friend Name"
+                      value={friend.name}
+                      onChange={(e) => {
+                        const updated = [...friends];
+                        updated[index].name = e.target.value;
+                        setFriends(updated);
+                      }}
+                      className="w-1/2 border p-2 rounded text-sm"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Mobile Number"
+                      value={friend.mobile}
+                      onChange={(e) => {
+                        const updated = [...friends];
+                        updated[index].mobile = e.target.value;
+                        setFriends(updated);
+                      }}
+                      className="w-1/2 border p-2 rounded text-sm"
+                    />
+
+                    <button
+                      onClick={() => handleSendInvite(friend)}
+                      className="px-3 py-2 bg-green-600 text-white rounded text-sm"
+                    >
+                      Send
+                    </button>
+                  </div>
+                ))}
+
+                <button
+                  onClick={() =>
+                    setFriends((prev) => [...prev, { name: "", mobile: "" }])
+                  }
+                  className="mt-2 px-4 py-2 bg-gray-700 text-white rounded text-sm"
+                >
+                  ➕ Add Another Friend
+                </button>
+
+                {referThanks && (
+                  <p className="mt-3 text-green-700 font-semibold">
+                    👍 {referThanks}
+                  </p>
                 )}
               </div>
             )}
