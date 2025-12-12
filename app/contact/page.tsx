@@ -1,116 +1,128 @@
-import Link from 'next/link';
+"use client";
+
+import Link from "next/link";
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-900 text-white px-6 py-4 shadow-lg">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* HEADER */}
+      <header className="bg-blue-900 text-white px-6 py-4 shadow-md">
         <div className="max-w-7xl mx-auto">
-          <Link href="/" className="text-2xl font-bold">MahaRERA MCQ System</Link>
+          <Link href="/" className="text-2xl font-bold hover:opacity-90">
+            EstateMakers – MahaRERA Prep
+          </Link>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto p-8">
-        <h1 className="text-4xl font-bold mb-6">Contact Us</h1>
+      {/* MAIN CONTENT */}
+      <div className="max-w-5xl mx-auto p-6 md:p-10 flex-1">
+        <h1 className="text-4xl font-extrabold mb-6 text-gray-900 text-center">
+          Contact Us
+        </h1>
 
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-bold mb-6">Get in Touch</h2>
+        {/* CONTACT CARD */}
+        <div className="bg-white rounded-xl shadow-lg p-8 mb-10">
+          <h2 className="text-2xl font-bold mb-6 text-blue-900">Get in Touch</h2>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
+            {/* Email */}
             <div className="flex items-start">
-              <div className="text-blue-600 text-2xl mr-4">📧</div>
+              <div className="text-blue-600 text-3xl mr-4">📧</div>
               <div>
-                <h3 className="font-bold text-lg mb-1">Email</h3>
-                <a 
+                <h3 className="font-bold text-lg">Email Support</h3>
+                <a
                   href="mailto:estateMakers.in@gmail.com"
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-700 font-medium hover:underline"
                 >
                   estateMakers.in@gmail.com
                 </a>
                 <p className="text-sm text-gray-600 mt-1">
-                  We typically respond within 24-48 hours
+                  We respond within 24 hours on working days.
                 </p>
               </div>
             </div>
 
+            {/* Business Hours */}
             <div className="flex items-start">
-              <div className="text-blue-600 text-2xl mr-4">🕐</div>
+              <div className="text-blue-600 text-3xl mr-4">🕒</div>
               <div>
-                <h3 className="font-bold text-lg mb-1">Business Hours</h3>
-                <p className="text-gray-700">Monday - Friday: 9:00 AM - 6:00 PM IST</p>
-                <p className="text-gray-700">Saturday: 9:00 AM - 1:00 PM IST</p>
+                <h3 className="font-bold text-lg">Business Hours</h3>
+                <p className="text-gray-700">Mon – Fri: 9:00 AM – 6:00 PM IST</p>
+                <p className="text-gray-700">Saturday: 9:00 AM – 1:00 PM IST</p>
                 <p className="text-gray-700">Sunday: Closed</p>
               </div>
             </div>
 
+            {/* Support Areas */}
             <div className="flex items-start">
-              <div className="text-blue-600 text-2xl mr-4">❓</div>
+              <div className="text-blue-600 text-3xl mr-4">💬</div>
               <div>
-                <h3 className="font-bold text-lg mb-1">Support Topics</h3>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Registration and login issues</li>
-                  <li>Payment and billing queries</li>
+                <h3 className="font-bold text-lg">Support Topics</h3>
+                <ul className="list-disc list-inside text-gray-700 space-y-1 text-sm">
+                  <li>Registration or login issues</li>
+                  <li>Payment verification & approval</li>
+                  <li>Access to mock tests & revision materials</li>
                   <li>Technical support</li>
-                  <li>Examination guidelines</li>
-                  <li>Certificate issuance</li>
-                  <li>Referral program questions</li>
+                  <li>MahaRERA exam guidelines</li>
+                  <li>Validity & usage queries</li>
                 </ul>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h2 className="text-2xl font-bold mb-4">Frequently Asked Questions</h2>
-          
-          <div className="space-y-4">
+        {/* FAQs */}
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold mb-6 text-blue-900">Frequently Asked Questions</h2>
+
+          <div className="space-y-6 text-gray-800">
             <div>
-              <h3 className="font-bold mb-2">How do I access my purchased tests?</h3>
+              <h3 className="font-semibold text-lg mb-1">How do I access the Premium Plan?</h3>
               <p className="text-gray-700">
-                After successful payment, log in to your dashboard. You'll see your available tests 
-                and can start them immediately.
+                Once your payment is approved, your dashboard unlocks full access to all
+                11 chapter revisions and 5 mock tests instantly.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold mb-2">When will I receive my certificate?</h3>
+              <h3 className="font-semibold text-lg mb-1">Do you offer tests in Marathi?</h3>
               <p className="text-gray-700">
-                Results are declared within 30 days of test submission. Certificates are issued 
-                within 30 days of result declaration.
+                Yes! The entire syllabus, revision notes, and all MCQs are available in
+                both English and Marathi. You can switch anytime.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold mb-2">Can I retake the test if I fail?</h3>
+              <h3 className="font-semibold text-lg mb-1">Is there any free test?</h3>
               <p className="text-gray-700">
-                Yes, you can purchase additional test attempts. Each package includes 2 test attempts.
+                No free tests are provided. Only paid users can access full content
+                to maintain quality and fairness for all learners.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold mb-2">How does the referral program work?</h3>
+              <h3 className="font-semibold text-lg mb-1">Can I retake mock tests?</h3>
               <p className="text-gray-700">
-                Share your unique referral code with friends. When they register and complete payment, 
-                you'll receive 1 free test automatically added to your account.
+                Yes! Premium users get unlimited attempts during the 100-day validity.
               </p>
             </div>
 
             <div>
-              <h3 className="font-bold mb-2">Is the test available in Marathi?</h3>
+              <h3 className="font-semibold text-lg mb-1">How long does approval take?</h3>
               <p className="text-gray-700">
-                Yes! All questions and options are available in both English and Marathi. You can 
-                toggle between languages during the test using the language switch button.
+                Typically within 10–30 minutes during working hours. Once approved,
+                your dashboard updates automatically.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-gray-600 mb-4">
-            Still have questions? Feel free to reach out to us!
-          </p>
+        {/* EMAIL CTA */}
+        <div className="text-center mt-10">
+          <p className="text-gray-600 mb-3">Still need assistance?</p>
           <a
             href="mailto:estateMakers.in@gmail.com"
-            className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+            className="inline-block px-8 py-3 bg-blue-700 text-white font-semibold rounded-lg shadow hover:bg-blue-800 transition"
           >
             Email Us
           </a>

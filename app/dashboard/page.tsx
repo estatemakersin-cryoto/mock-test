@@ -8,24 +8,15 @@ export default function DashboardPage() {
   const router = useRouter();
 
   const [user, setUser] = useState<any>(null);
-  const [paymentStatus, setPaymentStatus] =
-    useState<"NONE" | "PENDING" | "REJECTED" | "APPROVED">("NONE");
   const [loading, setLoading] = useState(true);
 
-  // Feedback (local only)
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
-  const [feedbackList, setFeedbackList] = useState<string[]>([]);
-  const [feedbackThanks, setFeedbackThanks] = useState(false);
+  // Show "payment approved" popup once
+  const [showApprovedMsg, setShowApprovedMsg] = useState(false);
+
+  const TOTAL_TESTS = 5;
 
   useEffect(() => {
     loadUser();
-
-    // Load feedback from localStorage
-    const saved = localStorage.getItem("feedbackList");
-    if (saved) {
-      setFeedbackList(JSON.parse(saved));
-    }
   }, []);
 
   const loadUser = async () => {
@@ -36,26 +27,20 @@ export default function DashboardPage() {
       const data = await res.json();
       setUser(data.user);
 
-      const p = await fetch("/api/payment/latest", { cache: "no-store" });
-      if (p.ok) {
-        const j = await p.json();
-        setPaymentStatus(j.status);
+      // Show popup on approval (ONLY ONCE)
+      if (data.user.packagePurchased && data.user.hasSeenApprovalMessage === false) {
+        setShowApprovedMsg(true);
+
+        // mark message as seen
+        await fetch("/api/user/mark-approval-seen", {
+          method: "POST",
+        });
       }
     } catch {
       router.push("/login");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFeedbackSubmit = () => {
-    if (!feedbackText.trim()) return;
-    const updated = [feedbackText.trim(), ...feedbackList];
-    setFeedbackList(updated);
-    localStorage.setItem("feedbackList", JSON.stringify(updated));
-    setFeedbackText("");
-    setFeedbackThanks(true);
-    setTimeout(() => setFeedbackThanks(false), 2000);
   };
 
   if (loading || !user) {
@@ -67,159 +52,170 @@ export default function DashboardPage() {
   }
 
   const hasPremium = user.packagePurchased === true;
-  const TOTAL_TESTS = 5;
   const testsCompleted = user.testsCompleted ?? 0;
   const testsRemaining = hasPremium ? TOTAL_TESTS - testsCompleted : 0;
 
-  // Referral message
   const referralMessage = encodeURIComponent(
     `Hi 😊  
 I am preparing for the MahaRERA Exam with EstateMakers.  
 Very useful platform with MCQs, Revision, Mock Tests & Study Material.  
-Join using my referral link 👇  
-https://estatemakers.in`
+Join using EstateMakers.in`
   );
 
   const referralLink = "https://estatemakers.in";
 
   return (
     <div className="min-h-screen bg-gray-50">
+
       {/* HEADER */}
       <header className="bg-blue-900 text-white px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between md:items-center gap-3">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <h1 className="text-xl font-bold">EstateMakers – Dashboard</h1>
 
-          <h1 className="text-lg md:text-2xl font-bold text-white leading-snug break-words text-center md:text-left">
-            MahaRERA Training & Compliance Platform
-          </h1>
+          <div className="flex gap-3 items-center">
+            <span className="hidden md:block">{user.fullName}</span>
 
-          <div className="flex justify-center md:justify-end gap-3">
-
-            {!user ? (
-              <>
-                <button
-                  onClick={() => router.push("/login")}
-                  className="px-4 py-2 bg-white text-blue-900 font-semibold rounded hover:bg-gray-200"
-                >
-                  Login
-                </button>
-
-                <button
-                  onClick={() => router.push("/register")}
-                  className="px-4 py-2 bg-yellow-400 text-black font-semibold rounded hover:bg-yellow-300"
-                >
-                  Register
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="hidden md:block">{user.fullName}</span>
-
-                <button
-                  onClick={() => router.push("/login")}
-                  className="px-3 py-1 bg-red-600 text-sm rounded hover:bg-red-700"
-                >
-                  Logout
-                </button>
-              </>
-            )}
+            <button
+              onClick={() => router.push("/login")}
+              className="px-3 py-1 bg-red-600 text-sm rounded hover:bg-red-700"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </header>
 
+      <div className="max-w-6xl mx-auto p-6">
 
 
-      <div className="max-w-7xl mx-auto p-6">
-
-        {/* ------------------ PAYMENT PENDING ------------------ */}
-        {paymentStatus === "PENDING" && !hasPremium && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded mb-6">
-            <h2 className="text-lg font-bold text-yellow-800">
-              Payment Submitted – Pending Verification
-            </h2>
-            <p className="text-sm text-yellow-700 mt-1">
-              Step 1: Join the official WhatsApp group  
-              <br />
-              Step 2: Send your payment screenshot.
+        {/* ------------------ APPROVAL POPUP ------------------ */}
+        {showApprovedMsg && (
+          <div className="bg-green-100 border-l-4 border-green-600 p-4 rounded mb-6">
+            <h2 className="text-lg font-bold text-green-800">🎉 Payment Approved!</h2>
+            <p className="text-sm text-green-700 mt-1">
+              Your premium access is now active.  
+              You can now start unlimited revision + all 5 mock tests.  
+              <strong> Best of luck! </strong>
             </p>
 
-            <div className="flex flex-col gap-3 mt-4">
-              <a
-                href="https://chat.whatsapp.com/BlEjmFbOk1O1w809vKHSHW"
-                target="_blank"
-                className="px-4 py-2 bg-green-600 text-white rounded text-center font-semibold"
-              >
-                ✅ Join WhatsApp Group
-              </a>
-
-              <a
-                href="https://wa.me/8850150878?text=I%20have%20submitted%20my%20payment.%20Here%20is%20my%20screenshot."
-                target="_blank"
-                className="px-4 py-2 bg-blue-600 text-white rounded text-center font-semibold"
-              >
-                📤 Send Screenshot to Admin
-              </a>
-            </div>
+            <button
+              onClick={() => setShowApprovedMsg(false)}
+              className="mt-3 px-3 py-1 bg-green-600 text-white rounded text-sm"
+            >
+              OK
+            </button>
           </div>
         )}
 
+
+        {/* ------------------ PREMIUM LOCKED ------------------ */}
+        {!hasPremium && (
+          <div className="bg-yellow-100 border-l-4 border-yellow-600 p-4 rounded mb-6">
+            <h2 className="text-lg font-bold text-yellow-800">Premium Locked</h2>
+            <p className="text-sm text-yellow-700 mt-1">
+              Unlock all chapters, revision notes and 5 mock tests.
+            </p>
+
+            <Link
+              href="/payment"
+              className="inline-block mt-3 px-5 py-2 bg-purple-600 text-white rounded font-semibold"
+            >
+              Buy Premium – ₹750
+            </Link>
+          </div>
+        )}
+
+
+        {/* ------------------ PREMIUM ACTIVE ------------------ */}
+        {hasPremium && (
+          <div className="bg-white p-6 rounded-xl shadow-md border mb-6">
+            <h2 className="text-xl font-bold text-green-700">
+              Premium Access Active ✔
+            </h2>
+            <p className="text-gray-700 text-sm mt-1">
+              Enjoy full syllabus access + mock tests.
+            </p>
+          </div>
+        )}
+
+
+        {/* ------------------ MAIN FEATURE CARDS ------------------ */}
+        <div className="grid md:grid-cols-2 gap-6">
+
+          {/* Revision */}
+          <Link
+            href="/revision"
+            className="bg-blue-100 p-6 rounded-xl shadow hover:scale-105 transition"
+          >
+            <h3 className="font-bold text-lg">📘 Revision Center</h3>
+            <p className="text-sm text-gray-700 mt-2">
+              Chapter-wise notes, FAQs & key points.
+            </p>
+          </Link>
+
+          {/* Mock Tests */}
+          <Link
+            href={hasPremium ? "/tests" : "/payment"}
+            className="bg-purple-100 p-6 rounded-xl shadow hover:scale-105 transition"
+          >
+            <h3 className="font-bold text-lg">📝 Full Mock Tests</h3>
+            <p className="text-sm text-gray-700 mt-2">
+              Real exam-like mock tests.
+            </p>
+          </Link>
+
+        </div>
+
+
         {/* ------------------ STUDY RESOURCES ------------------ */}
-        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg p-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg p-6 mt-10 text-white">
           <h3 className="text-2xl font-bold mb-4">📚 Study Resources</h3>
 
           <div className="grid md:grid-cols-2 gap-4">
-
-            <div className="bg-white/20 rounded-lg p-5 text-center">
+            <div className="bg-white/20 p-5 rounded-lg text-center">
               <div className="text-4xl mb-2">📖</div>
               <div className="font-semibold text-lg">Revision Center</div>
-              <div className="text-sm opacity-90 mb-2">All chapters + FAQs</div>
+              <p className="text-sm opacity-90">All chapters + FAQs</p>
 
-              {hasPremium ? (
-                <Link href="/revision" className="text-yellow-300 font-semibold">
-                  Start Revision →
-                </Link>
-              ) : paymentStatus === "PENDING" ? (
-                <p className="text-yellow-200">⏳ Awaiting Approval</p>
-              ) : (
-                <p className="text-red-200">🔒 Buy Plan to Unlock</p>
-              )}
+              <Link
+                href="/revision"
+                className="text-yellow-300 font-semibold block mt-2"
+              >
+                Start Revision →
+              </Link>
             </div>
 
-            <div className="bg-white/20 rounded-lg p-5 text-center">
+            <div className="bg-white/20 p-5 rounded-lg text-center">
               <div className="text-4xl mb-2">📝</div>
               <div className="font-semibold text-lg">Mock Tests</div>
 
-              <div className="text-sm opacity-90 mb-2">
-                {testsRemaining}/{TOTAL_TESTS} Tests Available
-              </div>
+              <p className="text-sm opacity-90">
+                {testsRemaining}/{TOTAL_TESTS} Available
+              </p>
 
-              {hasPremium ? (
-                <Link href="/mock-test" className="text-yellow-300 font-semibold">
-                  Start Test →
-                </Link>
-              ) : paymentStatus === "PENDING" ? (
-                <p className="text-yellow-200">⏳ Awaiting Approval</p>
-              ) : (
-                <p className="text-red-200">🔒 Buy Plan to Unlock</p>
-              )}
+              <Link
+                href={hasPremium ? "/tests" : "/payment"}
+                className="text-yellow-300 font-semibold block mt-2"
+              >
+                Start Test →
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* ------------------ REFERRAL CARD ------------------ */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 border-l-4 border-green-500">
-          <h3 className="text-xl font-bold mb-2 text-green-700">
+
+        {/* ------------------ REFERRAL ------------------ */}
+        <div className="bg-white p-6 rounded-lg shadow-lg mt-10 border-l-4 border-green-500">
+          <h3 className="text-xl font-bold text-green-700 mb-2">
             🤝 Refer Your Friends
           </h3>
-          <p className="text-gray-700 mb-3">
-            Share this link with your friends preparing for MahaRERA Exam.
-          </p>
+          <p className="text-gray-700 mb-3">Share this link:</p>
 
-          <div className="flex items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 mb-3">
             <input
-              type="text"
               value={referralLink}
               disabled
-              className="flex-1 border px-3 py-2 rounded bg-gray-100"
+              className="flex-1 border px-3 py-2 rounded bg-gray-100 text-sm"
             />
             <button
               onClick={() => navigator.clipboard.writeText(referralLink)}
@@ -232,76 +228,24 @@ https://estatemakers.in`
           <a
             href={`https://wa.me/?text=${referralMessage}`}
             target="_blank"
-            className="inline-block px-4 py-2 bg-green-600 text-white rounded font-semibold"
+            className="px-4 py-2 bg-green-600 text-white rounded inline-block"
           >
             📤 Share on WhatsApp
           </a>
         </div>
 
+
         {/* ------------------ COMING SOON ------------------ */}
-        <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-xl shadow-lg p-6 mb-8 text-white">
+        <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-xl shadow-lg p-6 mt-10 text-white">
           <h3 className="text-2xl font-bold mb-2">🚀 EstateMakers Agent Network</h3>
           <p className="opacity-90">
-            Very soon we will launch India's most powerful Real Estate Agent Network,
-            exclusive tools, CRM, leads & training.
+            Soon launching Real Estate Agent Network, CRM, Leads & Tools.
           </p>
-
-          <div className="inline-block mt-3 px-3 py-1 bg-white/30 rounded-full text-sm font-semibold">
-            Coming Soon
-          </div>
         </div>
 
-        {/* ------------------ FEEDBACK SECTION ------------------ */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <button
-            onClick={() => setFeedbackOpen(!feedbackOpen)}
-            className="w-full text-left font-bold text-lg flex justify-between items-center"
-          >
-            🗣️ Feedback
-            <span>{feedbackOpen ? "▲" : "▼"}</span>
-          </button>
-
-          {feedbackOpen && (
-            <div className="mt-4">
-              <textarea
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder="Write your feedback here..."
-                className="w-full border rounded p-3 min-h-[80px]"
-              />
-
-              <button
-                onClick={handleFeedbackSubmit}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
-              >
-                Submit Feedback
-              </button>
-
-              {feedbackThanks && (
-                <p className="text-green-600 mt-2 font-semibold">👍 Thank you!</p>
-              )}
-
-              {/* FEEDBACK LIST */}
-              <div className="mt-6 space-y-3">
-                {feedbackList.length === 0 ? (
-                  <p className="text-sm text-gray-500">No feedback yet.</p>
-                ) : (
-                  feedbackList.map((f, i) => (
-                    <div
-                      key={i}
-                      className="p-3 border rounded bg-gray-50 shadow-sm text-sm"
-                    >
-                      {f}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* ------------------ USER INFO ------------------ */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 mt-10">
           <div className="grid md:grid-cols-4 gap-6">
 
             <div>
@@ -311,39 +255,32 @@ https://estatemakers.in`
 
             <div>
               <p className="text-sm text-gray-600">Package Status</p>
-              {hasPremium ? (
-                <p className="text-lg font-bold text-purple-600">Premium Active</p>
-              ) : paymentStatus === "PENDING" ? (
-                <p className="text-lg font-bold text-yellow-600">Pending</p>
-              ) : (
-                <p className="text-lg font-bold text-red-600">Not Purchased</p>
-              )}
+              <p
+                className={`text-lg font-bold ${
+                  hasPremium ? "text-purple-600" : "text-red-600"
+                }`}
+              >
+                {hasPremium ? "Premium Active" : "Not Purchased"}
+              </p>
             </div>
 
             <div>
-              <p className="text-sm text-gray-600">Mock Tests Available</p>
+              <p className="text-sm text-gray-600">Mock Tests</p>
               <p className="text-3xl font-bold text-blue-600">
                 {testsRemaining}/{TOTAL_TESTS}
               </p>
-              <p className="text-xs text-gray-500">Completed: {testsCompleted}</p>
             </div>
 
-            <div className="flex flex-col justify-center">
-              {!hasPremium && paymentStatus === "NONE" && (
+            {!hasPremium && (
+              <div className="flex items-center">
                 <button
                   onClick={() => router.push("/payment")}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold"
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold w-full"
                 >
                   Buy Premium – ₹750
                 </button>
-              )}
-
-              {paymentStatus === "PENDING" && !hasPremium && (
-                <p className="text-center text-gray-600">
-                  Awaiting Admin Approval...
-                </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
