@@ -41,7 +41,7 @@ model User {
 
   // Test access
   testsRemaining Int @default(0)
-  testsUnlocked  Int @default(2)
+  testsUnlocked  Int @default(0)
   testsCompleted Int @default(0)
 
   // Referral System
