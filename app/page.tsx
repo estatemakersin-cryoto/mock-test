@@ -30,7 +30,7 @@ export default function HomePage() {
                 Premium Plan – ₹750
               </p>
               <p className="text-sm text-blue-100 mt-1">
-                FREE 2 Months Access to EstateMakers.in (worth ₹1000)
+                FREE 2 Months Access to EstateMakers.in (worth ₹2000)
               </p>
             </div>
 
