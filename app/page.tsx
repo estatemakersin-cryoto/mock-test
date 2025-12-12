@@ -38,15 +38,15 @@ export default function HomePage() {
             <Link
               href="/register"
               className="inline-block px-8 py-4 bg-purple-500 hover:bg-purple-600 
-                         text-white font-bold rounded-lg text-lg shadow-xl 
-                         transition transform hover:scale-105"
+                        text-white font-bold rounded-lg text-lg shadow-xl 
+                        transition transform hover:scale-105"
             >
               Start Preparation – ₹750
             </Link>
           </div>
 
           {/* RIGHT IMAGE */}
-          <div className="flex justify-center md:justify-end">
+          <div className="hidden md:flex justify-center md:justify-end">
             <img
               src="/hero-mocktest.png"
               alt="MahaRERA Mock Test"

@@ -40,7 +40,7 @@ export default function LoginPage() {
       }
 
       // Redirect based on response
-      window.location.href = data.redirect;
+      router.push(data.redirect);
 
     } catch (err) {
       setError("Something went wrong");

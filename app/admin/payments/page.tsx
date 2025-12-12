@@ -14,6 +14,7 @@ export default function AdminPaymentsPage() {
     loadPayments();
   }, []);
 
+  
   const loadPayments = async () => {
     try {
       const res = await fetch("/api/admin/payments", { cache: "no-store" });
