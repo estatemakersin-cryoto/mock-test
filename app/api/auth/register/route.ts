@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Check existing user
+    // Check if user already exists
     const existing = await prisma.user.findFirst({
       where: { email },
     });
@@ -26,13 +26,13 @@ export async function POST(req: Request) {
       );
     }
 
-    // Generate registration number (MR + 6 digits)
+    // Generate unique registration number
     const regNo = "MR" + Math.floor(100000 + Math.random() * 900000);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user (no free tests now)
     const user = await prisma.user.create({
       data: {
         fullName,
@@ -40,11 +40,12 @@ export async function POST(req: Request) {
         mobile,
         registrationNo: regNo,
         passwordHash: hashedPassword,
-        testsRemaining: 2, // 2 tests included with ₹350 package
+        // testsRemaining → default 0
+        // testsUnlocked → default 0
       },
     });
 
-    // Prepare JWT payload
+    // JWT for login session
     const token = await signToken({
       id: user.id,
       fullName: user.fullName,
@@ -53,7 +54,6 @@ export async function POST(req: Request) {
       packagePurchased: user.packagePurchased ?? false,
     });
 
-    // Set cookie
     const res = NextResponse.json({
       message: "Registration successful",
       user: {
@@ -67,16 +67,18 @@ export async function POST(req: Request) {
       },
     });
 
+    // Set cookie
     res.cookies.set("auth-token", token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
     return res;
-  } catch (error: any) {
+
+  } catch (error) {
     console.error("Register Error:", error);
     return NextResponse.json(
       { error: "Registration failed" },
