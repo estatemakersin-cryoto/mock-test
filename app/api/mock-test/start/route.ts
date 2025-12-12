@@ -14,7 +14,7 @@ const TARGET_COUNTS: Record<Difficulty, number> = {
   HARD: 10,       // 20%
 };
 
-// Shuffle utility
+// ------------------ UTILS -------------------
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -30,12 +30,41 @@ function pickRandom<T>(arr: T[], count: number): T[] {
   return shuffle(arr).slice(0, count);
 }
 
+// ------------------ MAIN ROUTE -------------------
 export async function POST(req: NextRequest) {
   try {
     const session = await requireUser();
     const userId = session.id;
 
-    // 1️⃣ Load previously used questions by this user
+    // 🔒 1️⃣ Load user & block if non-premium
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found." },
+        { status: 404 }
+      );
+    }
+
+    // 🔒 Block users who haven’t purchased premium
+    if (!user.packagePurchased) {
+      return NextResponse.json(
+        { error: "You have not purchased the premium plan." },
+        { status: 403 }
+      );
+    }
+
+    // 🔒 Block users with no tests remaining
+    if (user.testsRemaining <= 0) {
+      return NextResponse.json(
+        { error: "No tests remaining. Please contact admin." },
+        { status: 403 }
+      );
+    }
+
+    // 2️⃣ Load previously used questions
     const previous = await prisma.response.findMany({
       where: { attempt: { userId } },
       select: { questionId: true },
@@ -47,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     const difficulties: Difficulty[] = ["EASY", "MODERATE", "HARD"];
 
-    // 2️⃣ Difficulty selection
+    // 3️⃣ Difficulty-wise selection
     for (const diff of difficulties) {
       const target = TARGET_COUNTS[diff];
 
@@ -85,7 +114,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3️⃣ Global fallback — fill from ANY question
+    // 4️⃣ Global fallback
     if (finalQuestionIds.length < TOTAL_QUESTIONS) {
       const still = TOTAL_QUESTIONS - finalQuestionIds.length;
 
@@ -103,7 +132,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4️⃣ If still small (very small DB), just shuffle and use whatever is available
     const finalList = shuffle(finalQuestionIds).slice(
       0,
       Math.min(TOTAL_QUESTIONS, finalQuestionIds.length)
@@ -133,7 +161,16 @@ export async function POST(req: NextRequest) {
       })),
     });
 
+    // 🔄 Reduce test count
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        testsRemaining: user.testsRemaining - 1,
+      },
+    });
+
     return NextResponse.json({ attemptId: attempt.id });
+
   } catch (error) {
     console.error("Start Test Error:", error);
     return NextResponse.json(

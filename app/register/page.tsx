@@ -92,18 +92,32 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* Mobile */}
+          {/* Mobile Number */}
           <div>
-            <label className="block mb-1 font-semibold">Mobile</label>
-            <input
-              type="tel"
-              className="w-full border rounded p-3"
-              value={formData.mobile}
-              onChange={(e) =>
-                setFormData({ ...formData, mobile: e.target.value })
-              }
-            />
+            <label className="block mb-1 font-semibold">Mobile Number</label>
+
+            <div className="flex">
+              {/* Locked +91 Prefix */}
+              <span className="px-4 py-3 bg-gray-200 border border-r-0 rounded-l text-gray-700 font-semibold">
+                +91
+              </span>
+
+              <input
+                type="tel"
+                maxLength={10}
+                className="w-full border rounded-r p-3"
+                placeholder="10-digit mobile number"
+                value={formData.mobile}
+                onChange={(e) => {
+                  // Remove ALL spaces, dashes, brackets, symbols, +91 — only keep digits
+                  const cleaned = e.target.value.replace(/\D/g, "");
+                  setFormData({ ...formData, mobile: cleaned });
+                }}
+                required
+              />
+            </div>
           </div>
+
 
           {/* Password */}
           <div>
