@@ -86,19 +86,47 @@ https://estatemakers.in`
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
       <header className="bg-blue-900 text-white px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl font-bold">MahaRERA MCQ Dashboard</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm">{user.fullName}</span>
-            <button
-              onClick={() => router.push("/login")}
-              className="px-3 py-1 bg-red-600 text-sm rounded"
-            >
-              Logout
-            </button>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between md:items-center gap-3">
+
+          <h1 className="text-lg md:text-2xl font-bold text-white leading-snug break-words text-center md:text-left">
+            MahaRERA Training & Compliance Platform
+          </h1>
+
+          <div className="flex justify-center md:justify-end gap-3">
+
+            {!user ? (
+              <>
+                <button
+                  onClick={() => router.push("/login")}
+                  className="px-4 py-2 bg-white text-blue-900 font-semibold rounded hover:bg-gray-200"
+                >
+                  Login
+                </button>
+
+                <button
+                  onClick={() => router.push("/register")}
+                  className="px-4 py-2 bg-yellow-400 text-black font-semibold rounded hover:bg-yellow-300"
+                >
+                  Register
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="hidden md:block">{user.fullName}</span>
+
+                <button
+                  onClick={() => router.push("/login")}
+                  className="px-3 py-1 bg-red-600 text-sm rounded hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
+
+
 
       <div className="max-w-7xl mx-auto p-6">
 
