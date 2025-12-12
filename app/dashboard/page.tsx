@@ -10,9 +10,6 @@ export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Show "payment approved" popup once
-  const [showApprovedMsg, setShowApprovedMsg] = useState(false);
-
   const TOTAL_TESTS = 5;
 
   useEffect(() => {
@@ -26,16 +23,6 @@ export default function DashboardPage() {
 
       const data = await res.json();
       setUser(data.user);
-
-      // Show popup on approval (ONLY ONCE)
-      if (data.user.packagePurchased && data.user.hasSeenApprovalMessage === false) {
-        setShowApprovedMsg(true);
-
-        // mark message as seen
-        await fetch("/api/user/mark-approval-seen", {
-          method: "POST",
-        });
-      }
     } catch {
       router.push("/login");
     } finally {
@@ -53,7 +40,9 @@ export default function DashboardPage() {
 
   const hasPremium = user.packagePurchased === true;
   const testsCompleted = user.testsCompleted ?? 0;
-  const testsRemaining = hasPremium ? TOTAL_TESTS - testsCompleted : 0;
+  const testsRemaining = hasPremium
+    ? TOTAL_TESTS - testsCompleted
+    : 0;
 
   const referralMessage = encodeURIComponent(
     `Hi 😊  
@@ -88,32 +77,12 @@ Join using EstateMakers.in`
       <div className="max-w-6xl mx-auto p-6">
 
 
-        {/* ------------------ APPROVAL POPUP ------------------ */}
-        {showApprovedMsg && (
-          <div className="bg-green-100 border-l-4 border-green-600 p-4 rounded mb-6">
-            <h2 className="text-lg font-bold text-green-800">🎉 Payment Approved!</h2>
-            <p className="text-sm text-green-700 mt-1">
-              Your premium access is now active.  
-              You can now start unlimited revision + all 5 mock tests.  
-              <strong> Best of luck! </strong>
-            </p>
-
-            <button
-              onClick={() => setShowApprovedMsg(false)}
-              className="mt-3 px-3 py-1 bg-green-600 text-white rounded text-sm"
-            >
-              OK
-            </button>
-          </div>
-        )}
-
-
-        {/* ------------------ PREMIUM LOCKED ------------------ */}
+        {/* PREMIUM LOCKED */}
         {!hasPremium && (
           <div className="bg-yellow-100 border-l-4 border-yellow-600 p-4 rounded mb-6">
             <h2 className="text-lg font-bold text-yellow-800">Premium Locked</h2>
             <p className="text-sm text-yellow-700 mt-1">
-              Unlock all chapters, revision notes and 5 mock tests.
+              Unlock all chapters, revision notes and all 5 mock tests.
             </p>
 
             <Link
@@ -125,21 +94,19 @@ Join using EstateMakers.in`
           </div>
         )}
 
-
-        {/* ------------------ PREMIUM ACTIVE ------------------ */}
+        {/* PREMIUM ACTIVE */}
         {hasPremium && (
           <div className="bg-white p-6 rounded-xl shadow-md border mb-6">
             <h2 className="text-xl font-bold text-green-700">
               Premium Access Active ✔
             </h2>
             <p className="text-gray-700 text-sm mt-1">
-              Enjoy full syllabus access + mock tests.
+              You have full access to all chapters + mock tests.
             </p>
           </div>
         )}
 
-
-        {/* ------------------ MAIN FEATURE CARDS ------------------ */}
+        {/* MAIN FEATURE CARDS */}
         <div className="grid md:grid-cols-2 gap-6">
 
           {/* Revision */}
@@ -167,7 +134,7 @@ Join using EstateMakers.in`
         </div>
 
 
-        {/* ------------------ STUDY RESOURCES ------------------ */}
+        {/* STUDY RESOURCES */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg p-6 mt-10 text-white">
           <h3 className="text-2xl font-bold mb-4">📚 Study Resources</h3>
 
@@ -204,7 +171,7 @@ Join using EstateMakers.in`
         </div>
 
 
-        {/* ------------------ REFERRAL ------------------ */}
+        {/* REFERRAL SECTION */}
         <div className="bg-white p-6 rounded-lg shadow-lg mt-10 border-l-4 border-green-500">
           <h3 className="text-xl font-bold text-green-700 mb-2">
             🤝 Refer Your Friends
@@ -235,16 +202,18 @@ Join using EstateMakers.in`
         </div>
 
 
-        {/* ------------------ COMING SOON ------------------ */}
+        {/* COMING SOON */}
         <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-xl shadow-lg p-6 mt-10 text-white">
-          <h3 className="text-2xl font-bold mb-2">🚀 EstateMakers Agent Network</h3>
+          <h3 className="text-2xl font-bold mb-2">
+            🚀 EstateMakers Agent Network
+          </h3>
           <p className="opacity-90">
-            Soon launching Real Estate Agent Network, CRM, Leads & Tools.
+            Launching soon: CRM, Leads, Tools & more.
           </p>
         </div>
 
 
-        {/* ------------------ USER INFO ------------------ */}
+        {/* USER INFO */}
         <div className="bg-white rounded-lg shadow-lg p-6 mt-10">
           <div className="grid md:grid-cols-4 gap-6">
 
@@ -269,6 +238,7 @@ Join using EstateMakers.in`
               <p className="text-3xl font-bold text-blue-600">
                 {testsRemaining}/{TOTAL_TESTS}
               </p>
+              <p className="text-xs text-gray-500">Completed: {testsCompleted}</p>
             </div>
 
             {!hasPremium && (

@@ -217,9 +217,10 @@ export default function UsersPage() {
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {user.packagePurchased ? "Premium ₹750" : "Free"}
+                        {user.packagePurchased ? "Premium (Active)" : "Not Activated"}
                       </span>
                     </td>
+
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {new Date(user.createdAt).toLocaleDateString("en-IN", {
                         day: "2-digit",

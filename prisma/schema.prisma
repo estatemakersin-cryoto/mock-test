@@ -34,8 +34,8 @@ model User {
   passwordHash   String
 
   // Access & Role
-  isAdmin          Boolean @default(false)
-  packagePurchased Boolean @default(false)
+  isAdmin              Boolean   @default(false)
+  packagePurchased     Boolean   @default(false)
   packagePurchasedDate DateTime?
   packageExpiry        DateTime?
 
@@ -45,7 +45,7 @@ model User {
   testsCompleted Int @default(0)
 
   // Referral System
-  referralCount Int       @default(0)
+  referralCount Int     @default(0)
   referredBy    String?
   referralCode  String?
 
@@ -54,9 +54,9 @@ model User {
   revisionAttempts Int      @default(0)
 
   // Relations
-  attempts TestAttempt[]
-  referralsMade       Referral[] @relation("UserReferrals")
-  referralAsConverted Referral[] @relation("ReferralConvertedUser")
+  attempts            TestAttempt[]
+  referralsMade       Referral[]    @relation("UserReferrals")
+  referralAsConverted Referral[]    @relation("ReferralConvertedUser")
 
   // Payments
   paymentProofs PaymentProof[]
@@ -111,63 +111,62 @@ model Chapter {
 // ========================================
 
 model RevisionContent {
-  id        Int      @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   chapterId Int
-  
+
   // ✅ BILINGUAL TITLES - Better structure
-  titleEn   String
-  titleMr   String
-  
+  titleEn String
+  titleMr String
+
   // Content fields (optional)
-  contentEn String?  @db.Text
-  contentMr String?  @db.Text
-  
+  contentEn String? @db.Text
+  contentMr String? @db.Text
+
   // Optional fields
-  imageUrl  String?
-  qaJson    Json?    @default("[]")
-  
+  imageUrl String?
+  qaJson   Json?   @default("[]")
+
   // Ordering and timestamps
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relation
-  chapter   Chapter  @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
   // Index for performance
   @@index([chapterId])
 }
 
-
 model Question {
-  id            Int        @id @default(autoincrement())
-  chapterId     Int
+  id        Int @id @default(autoincrement())
+  chapterId Int
 
-  questionEn    String
-  questionMr    String?
+  questionEn String
+  questionMr String?
 
-  optionAEn     String
-  optionAMr     String?
-  optionBEn     String
-  optionBMr     String?
-  optionCEn     String
-  optionCMr     String?
-  optionDEn     String
-  optionDMr     String?
+  optionAEn String
+  optionAMr String?
+  optionBEn String
+  optionBMr String?
+  optionCEn String
+  optionCMr String?
+  optionDEn String
+  optionDMr String?
 
   correctAnswer String
 
-  difficulty    Difficulty @default(MODERATE)
+  difficulty Difficulty @default(MODERATE)
 
-  chapter       Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-  responses     Response[]
+  chapter   Chapter    @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  responses Response[]
 }
 
 model TestAttempt {
-  id             String     @id @default(cuid())
+  id String @id @default(cuid())
 
-  userId         String?
-  user           User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // No registration number stored — only temporary during registration flow
 
@@ -178,34 +177,32 @@ model TestAttempt {
   totalQuestions Int        @default(50)
   status         TestStatus @default(IN_PROGRESS)
 
-  responses      Response[]
+  responses Response[]
 }
 
 model Response {
-  id          String      @id @default(cuid())
+  id String @id @default(cuid())
 
-  attemptId   String
-  questionId  Int
+  attemptId  String
+  questionId Int
 
-  userAnswer  String?
-  isCorrect   Boolean?
-  createdAt   DateTime    @default(now())
+  userAnswer String?
+  isCorrect  Boolean?
+  createdAt  DateTime @default(now())
 
-  attempt     TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  question    Question    @relation(fields: [questionId], references: [id])
+  attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id])
 }
 
 model PaymentProof {
-  id             String  @id @default(cuid())
-  userId       String
-  amount       Int
-  planType     String
+  id            String   @id @default(cuid())
+  userId        String
+  amount        Int
+  planType      String
   transactionId String
-  notes        String?
-  status       String    @default("PENDING")
-  createdAt    DateTime  @default(now())
+  notes         String?
+  status        String   @default("PENDING")
+  createdAt     DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
-

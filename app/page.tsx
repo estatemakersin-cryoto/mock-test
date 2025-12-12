@@ -29,7 +29,7 @@ export default function HomePage() {
 
           {/* Description */}
           <p className="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            Maharashtra&apos;s Leading Preparation Platform for Agents &amp; Developers  
+            Maharashtra&apos;s Leading Preparation Platform for Agents & Developers  
             <br />
             <span className="font-semibold">
               Includes Full Syllabus • Revision • Mock Tests • English + Marathi
@@ -150,6 +150,21 @@ export default function HomePage() {
               Buy Premium – ₹750
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ESTATEMAKERS COMING SOON BANNER (RESTORED!) */}
+      <section className="max-w-6xl mx-auto px-4 py-8">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl shadow-2xl p-8 text-center text-white">
+          <h3 className="text-2xl md:text-3xl font-extrabold mb-3 tracking-wide">
+            🚀 EstateMakers Platform Launching Soon
+          </h3>
+          <p className="text-base md:text-lg text-purple-100 mb-2">
+            Networking • Proposals • Redevelopment • Builder Connect • B2C Lead Flow
+          </p>
+          <p className="text-sm text-purple-200">
+            The Complete Real Estate Business Platform for Maharashtra Agents
+          </p>
         </div>
       </section>
 

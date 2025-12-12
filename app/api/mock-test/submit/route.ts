@@ -7,7 +7,6 @@ import { requireUser } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    // 🔒 User auth required
     const session = await requireUser();
 
     const { attemptId } = await req.json();
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Load attempt + related responses
+    // Load attempt + responses
     const attempt = await prisma.testAttempt.findUnique({
       where: { id: attemptId },
       include: {
@@ -42,9 +41,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // -------------------------
+    // 1️⃣ Prevent test limit below zero
+    // -------------------------
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.id },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    // If no tests remaining → stop submission
+    if (user.testsRemaining <= 0) {
+      return NextResponse.json(
+        { error: "No tests remaining" },
+        { status: 400 }
+      );
+    }
+
+    // -------------------------
+    // 2️⃣ Evaluate MCQs
+    // -------------------------
+
     let correct = 0;
 
-    // Evaluate each response
     const updates = attempt.responses.map((r) => {
       const isCorrect = r.userAnswer === r.question.correctAnswer;
       if (isCorrect) correct++;
@@ -57,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     await Promise.all(updates);
 
-    // Update test attempt
+    // Update attempt
     await prisma.testAttempt.update({
       where: { id: attemptId },
       data: {
@@ -68,12 +93,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // 🎯 Update user's test limits only for logged-in users
+    // -------------------------
+    // 3️⃣ Safe decrements
+    // -------------------------
+
     await prisma.user.update({
       where: { id: session.id },
       data: {
-        testsCompleted: { increment: 1 },
-        testsRemaining: { decrement: 1 },
+        testsCompleted: user.testsCompleted + 1,
+        testsRemaining: Math.max(user.testsRemaining - 1, 0), // ❗ Prevent negative
       },
     });
 

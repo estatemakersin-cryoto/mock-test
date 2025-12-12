@@ -8,7 +8,6 @@ export async function POST() {
 
     await prisma.user.update({
       where: { id: session.id },
-      data: { hasSeenApprovalMessage: true },
     });
 
     return NextResponse.json({ success: true });
