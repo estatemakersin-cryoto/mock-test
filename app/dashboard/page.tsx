@@ -12,24 +12,22 @@ export default function DashboardPage() {
     useState<"NONE" | "PENDING" | "REJECTED" | "APPROVED">("NONE");
   const [loading, setLoading] = useState(true);
 
-  // FEEDBACK STATES
-  const [showFB, setShowFB] = useState(false);
-  const [feedback, setFeedback] = useState("");
-  const [feedbackThanks, setFeedbackThanks] = useState("");
+  // Feedback (local only)
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
   const [feedbackList, setFeedbackList] = useState<string[]>([]);
-
-  // REFER FRIENDS STATES
-  const [showRefer, setShowRefer] = useState(false);
-  const [friends, setFriends] = useState([{ name: "", mobile: "" }]);
-  const [referThanks, setReferThanks] = useState("");
+  const [feedbackThanks, setFeedbackThanks] = useState(false);
 
   useEffect(() => {
     loadUser();
+
+    // Load feedback from localStorage
+    const saved = localStorage.getItem("feedbackList");
+    if (saved) {
+      setFeedbackList(JSON.parse(saved));
+    }
   }, []);
 
-  // --------------------------------------
-  // LOAD USER + PAYMENT STATUS
-  // --------------------------------------
   const loadUser = async () => {
     try {
       const res = await fetch("/api/auth/verify", { cache: "no-store" });
@@ -38,11 +36,10 @@ export default function DashboardPage() {
       const data = await res.json();
       setUser(data.user);
 
-      // Fetch latest payment
-      const payRes = await fetch("/api/payment/latest", { cache: "no-store" });
-      if (payRes.ok) {
-        const payData = await payRes.json();
-        setPaymentStatus(payData.status);
+      const p = await fetch("/api/payment/latest", { cache: "no-store" });
+      if (p.ok) {
+        const j = await p.json();
+        setPaymentStatus(j.status);
       }
     } catch {
       router.push("/login");
@@ -51,55 +48,16 @@ export default function DashboardPage() {
     }
   };
 
-  // --------------------------------------
-  // FEEDBACK SUBMIT
-  // --------------------------------------
   const handleFeedbackSubmit = () => {
-    if (!feedback.trim()) return;
-
-    setFeedbackList((prev) => [feedback.trim(), ...prev]);
-
-    setFeedbackThanks("Thank you for your feedback!");
-    setTimeout(() => setFeedbackThanks(""), 3000);
-
-    const msg =
-      `MahaRERA Mock Test Feedback from ${user.fullName} (${user.mobile || ""}):\n\n` +
-      feedback.trim();
-
-    const wa = `https://wa.me/919892357558?text=${encodeURIComponent(msg)}`;
-    window.open(wa, "_blank");
-
-    setFeedback("");
+    if (!feedbackText.trim()) return;
+    const updated = [feedbackText.trim(), ...feedbackList];
+    setFeedbackList(updated);
+    localStorage.setItem("feedbackList", JSON.stringify(updated));
+    setFeedbackText("");
+    setFeedbackThanks(true);
+    setTimeout(() => setFeedbackThanks(false), 2000);
   };
 
-  // --------------------------------------
-  // REFER FRIENDS - SEND WA INVITE
-  // --------------------------------------
-  const handleSendInvite = (friend: { name: string; mobile: string }) => {
-    if (!friend.name.trim() || !friend.mobile.trim()) return;
-
-    const msg =
-      `Hi ${friend.name},\n\n` +
-      `I'm preparing for the MahaRERA Real Estate Agent Exam using EstateMakers Mock Tests.\n` +
-      `They provide:\n` +
-      `✔ 5 Mock Tests\n` +
-      `✔ 400+ Practice MCQs\n` +
-      `✔ Revision Materials\n` +
-      `✔ Real Exam Pattern\n\n` +
-      `Join before the seats close.\n\n` +
-      `Register here: https://estatemakers.in\n\n` +
-      `- ${user.fullName} (${user.mobile})`;
-
-    const wa = `https://wa.me/${friend.mobile}?text=${encodeURIComponent(msg)}`;
-    window.open(wa, "_blank");
-
-    setReferThanks("Invite sent successfully!");
-    setTimeout(() => setReferThanks(""), 3000);
-  };
-
-  // --------------------------------------
-  // LOADING
-  // --------------------------------------
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -108,16 +66,22 @@ export default function DashboardPage() {
     );
   }
 
-  // BUSINESS LOGIC
   const hasPremium = user.packagePurchased === true;
-
   const TOTAL_TESTS = 5;
   const testsCompleted = user.testsCompleted ?? 0;
   const testsRemaining = hasPremium ? TOTAL_TESTS - testsCompleted : 0;
 
-  // --------------------------------------
-  // PAGE UI
-  // --------------------------------------
+  // Referral message
+  const referralMessage = encodeURIComponent(
+    `Hi 😊  
+I am preparing for the MahaRERA Exam with EstateMakers.  
+Very useful platform with MCQs, Revision, Mock Tests & Study Material.  
+Join using my referral link 👇  
+https://estatemakers.in`
+  );
+
+  const referralLink = "https://estatemakers.in";
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER */}
@@ -138,7 +102,7 @@ export default function DashboardPage() {
 
       <div className="max-w-7xl mx-auto p-6">
 
-        {/* PAYMENT PENDING */}
+        {/* ------------------ PAYMENT PENDING ------------------ */}
         {paymentStatus === "PENDING" && !hasPremium && (
           <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded mb-6">
             <h2 className="text-lg font-bold text-yellow-800">
@@ -147,7 +111,7 @@ export default function DashboardPage() {
             <p className="text-sm text-yellow-700 mt-1">
               Step 1: Join the official WhatsApp group  
               <br />
-              Step 2: Send your payment screenshot with your name & mobile number.
+              Step 2: Send your payment screenshot.
             </p>
 
             <div className="flex flex-col gap-3 mt-4">
@@ -160,7 +124,7 @@ export default function DashboardPage() {
               </a>
 
               <a
-                href={`https://wa.me/919892357558?text=I%20have%20submitted%20my%20payment.%20Here%20is%20the%20screenshot.`}
+                href="https://wa.me/8850150878?text=I%20have%20submitted%20my%20payment.%20Here%20is%20my%20screenshot."
                 target="_blank"
                 className="px-4 py-2 bg-blue-600 text-white rounded text-center font-semibold"
               >
@@ -170,17 +134,16 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* STUDY RESOURCES */}
+        {/* ------------------ STUDY RESOURCES ------------------ */}
         <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-lg p-6 mb-8 text-white">
           <h3 className="text-2xl font-bold mb-4">📚 Study Resources</h3>
 
           <div className="grid md:grid-cols-2 gap-4">
 
-            {/* REVISION */}
             <div className="bg-white/20 rounded-lg p-5 text-center">
               <div className="text-4xl mb-2">📖</div>
               <div className="font-semibold text-lg">Revision Center</div>
-              <div className="text-sm opacity-90 mb-2">All 11 chapters + FAQs</div>
+              <div className="text-sm opacity-90 mb-2">All chapters + FAQs</div>
 
               {hasPremium ? (
                 <Link href="/revision" className="text-yellow-300 font-semibold">
@@ -193,7 +156,6 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* MOCK TESTS */}
             <div className="bg-white/20 rounded-lg p-5 text-center">
               <div className="text-4xl mb-2">📝</div>
               <div className="font-semibold text-lg">Mock Tests</div>
@@ -215,7 +177,102 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* USER INFO */}
+        {/* ------------------ REFERRAL CARD ------------------ */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8 border-l-4 border-green-500">
+          <h3 className="text-xl font-bold mb-2 text-green-700">
+            🤝 Refer Your Friends
+          </h3>
+          <p className="text-gray-700 mb-3">
+            Share this link with your friends preparing for MahaRERA Exam.
+          </p>
+
+          <div className="flex items-center gap-3 mb-4">
+            <input
+              type="text"
+              value={referralLink}
+              disabled
+              className="flex-1 border px-3 py-2 rounded bg-gray-100"
+            />
+            <button
+              onClick={() => navigator.clipboard.writeText(referralLink)}
+              className="px-4 py-2 bg-blue-600 text-white rounded"
+            >
+              Copy
+            </button>
+          </div>
+
+          <a
+            href={`https://wa.me/?text=${referralMessage}`}
+            target="_blank"
+            className="inline-block px-4 py-2 bg-green-600 text-white rounded font-semibold"
+          >
+            📤 Share on WhatsApp
+          </a>
+        </div>
+
+        {/* ------------------ COMING SOON ------------------ */}
+        <div className="bg-gradient-to-r from-pink-500 to-red-500 rounded-xl shadow-lg p-6 mb-8 text-white">
+          <h3 className="text-2xl font-bold mb-2">🚀 EstateMakers Agent Network</h3>
+          <p className="opacity-90">
+            Very soon we will launch India's most powerful Real Estate Agent Network,
+            exclusive tools, CRM, leads & training.
+          </p>
+
+          <div className="inline-block mt-3 px-3 py-1 bg-white/30 rounded-full text-sm font-semibold">
+            Coming Soon
+          </div>
+        </div>
+
+        {/* ------------------ FEEDBACK SECTION ------------------ */}
+        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+          <button
+            onClick={() => setFeedbackOpen(!feedbackOpen)}
+            className="w-full text-left font-bold text-lg flex justify-between items-center"
+          >
+            🗣️ Feedback
+            <span>{feedbackOpen ? "▲" : "▼"}</span>
+          </button>
+
+          {feedbackOpen && (
+            <div className="mt-4">
+              <textarea
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder="Write your feedback here..."
+                className="w-full border rounded p-3 min-h-[80px]"
+              />
+
+              <button
+                onClick={handleFeedbackSubmit}
+                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Submit Feedback
+              </button>
+
+              {feedbackThanks && (
+                <p className="text-green-600 mt-2 font-semibold">👍 Thank you!</p>
+              )}
+
+              {/* FEEDBACK LIST */}
+              <div className="mt-6 space-y-3">
+                {feedbackList.length === 0 ? (
+                  <p className="text-sm text-gray-500">No feedback yet.</p>
+                ) : (
+                  feedbackList.map((f, i) => (
+                    <div
+                      key={i}
+                      className="p-3 border rounded bg-gray-50 shadow-sm text-sm"
+                    >
+                      {f}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ------------------ USER INFO ------------------ */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="grid md:grid-cols-4 gap-6">
 
@@ -247,145 +304,21 @@ export default function DashboardPage() {
               {!hasPremium && paymentStatus === "NONE" && (
                 <button
                   onClick={() => router.push("/payment")}
-                  className="w-full px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold"
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg font-semibold"
                 >
                   Buy Premium – ₹750
                 </button>
               )}
+
               {paymentStatus === "PENDING" && !hasPremium && (
-                <p className="text-center text-gray-600">Awaiting Admin Approval...</p>
+                <p className="text-center text-gray-600">
+                  Awaiting Admin Approval...
+                </p>
               )}
             </div>
           </div>
-
-          {/* FEEDBACK SECTION */}
-          <div className="mt-8 border rounded-lg p-4 bg-gray-50">
-            <button
-              onClick={() => setShowFB((s) => !s)}
-              className="w-full flex justify-between items-center font-semibold text-lg text-blue-700"
-            >
-              📝 Feedback & Suggestions
-              <span>{showFB ? "▲" : "▼"}</span>
-            </button>
-
-            {showFB && (
-              <div className="mt-3">
-                <p className="text-sm text-gray-600 mb-2">
-                  Help us improve the mock tests and training experience.
-                </p>
-
-                <textarea
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  className="w-full border rounded p-2 text-sm min-h-[90px]"
-                  placeholder="Write your feedback..."
-                />
-
-                <button
-                  onClick={handleFeedbackSubmit}
-                  disabled={!feedback.trim()}
-                  className="mt-2 px-4 py-2 bg-blue-700 text-white rounded text-sm disabled:bg-gray-400"
-                >
-                  Send Feedback on WhatsApp
-                </button>
-
-                {feedbackThanks && (
-                  <p className="mt-2 text-green-700 font-semibold">
-                    👍 {feedbackThanks}
-                  </p>
-                )}
-
-                {feedbackList.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-semibold text-gray-700 mb-2">⭐ Top Feedbacks</h4>
-                    <ul className="space-y-2">
-                      {feedbackList.map((fb, idx) => (
-                        <li
-                          key={idx}
-                          className="bg-white p-3 rounded shadow text-sm"
-                        >
-                          {fb}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* REFER FRIENDS SECTION */}
-          <div className="mt-8 border rounded-lg p-4 bg-gray-50">
-            <button
-              onClick={() => setShowRefer((s) => !s)}
-              className="w-full flex justify-between items-center font-semibold text-lg text-green-700"
-            >
-              🤝 Refer & Earn (Get ₹50 Credit)
-              <span>{showRefer ? "▲" : "▼"}</span>
-            </button>
-
-            {showRefer && (
-              <div className="mt-3">
-
-                <p className="text-sm text-gray-600 mb-3">
-                  Invite friends preparing for MahaRERA Exam.  
-                  You earn <strong>₹50 Credits</strong> for each successful registration.
-                </p>
-
-                {friends.map((friend, index) => (
-                  <div key={index} className="flex gap-2 mb-3 bg-white p-3 rounded shadow">
-                    <input
-                      type="text"
-                      placeholder="Friend Name"
-                      value={friend.name}
-                      onChange={(e) => {
-                        const updated = [...friends];
-                        updated[index].name = e.target.value;
-                        setFriends(updated);
-                      }}
-                      className="w-1/2 border p-2 rounded text-sm"
-                    />
-
-                    <input
-                      type="text"
-                      placeholder="Mobile Number"
-                      value={friend.mobile}
-                      onChange={(e) => {
-                        const updated = [...friends];
-                        updated[index].mobile = e.target.value;
-                        setFriends(updated);
-                      }}
-                      className="w-1/2 border p-2 rounded text-sm"
-                    />
-
-                    <button
-                      onClick={() => handleSendInvite(friend)}
-                      className="px-3 py-2 bg-green-600 text-white rounded text-sm"
-                    >
-                      Send
-                    </button>
-                  </div>
-                ))}
-
-                <button
-                  onClick={() =>
-                    setFriends((prev) => [...prev, { name: "", mobile: "" }])
-                  }
-                  className="mt-2 px-4 py-2 bg-gray-700 text-white rounded text-sm"
-                >
-                  ➕ Add Another Friend
-                </button>
-
-                {referThanks && (
-                  <p className="mt-3 text-green-700 font-semibold">
-                    👍 {referThanks}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
         </div>
+
       </div>
     </div>
   );
