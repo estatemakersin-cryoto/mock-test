@@ -3,259 +3,118 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-// UPDATED ADMIN NUMBERS
-const ADMIN_WA_1 = "919892357558"; // Ramraje Bhosale
-const ADMIN_WA_2 = "919699091086"; // Vaishali Kamath
-
-const UPI_ID = "vaishkamath@oksbi";
-const UPI_NAME = "Vaishali Kamath";
-const UPI_MOBILE = "9699091086";
-
-export default function PaymentPage() {
+export default function AdminPaymentsPage() {
   const router = useRouter();
 
-  const [user, setUser] = useState<any>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(""); // ADD THIS LINE
 
-  const amount = 750;
-  const planType = "PREMIUM";
-
-  const [transactionId, setTransactionId] = useState("");
-  const [notes, setNotes] = useState("");
-
-  // LOAD USER
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const res = await fetch("/api/auth/verify", { cache: "no-store" });
-        if (!res.ok) return router.push("/login");
+    loadPayments();
+  }, []);
 
-        const data = await res.json();
-        setUser(data.user);
-      } catch {
-        router.push("/login");
-      } finally {
-        setLoadingUser(false);
-      }
-    };
-
-    loadUser();
-  }, [router]);
-
-  // SUBMIT PAYMENT
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!transactionId.trim()) {
-      alert("Please enter your UPI Transaction ID.");
-      return;
-    }
-
+  const loadPayments = async () => {
     try {
-      setSubmitting(true);
+      const res = await fetch("/api/admin/payments", { cache: "no-store" });
 
-      const res = await fetch("/api/payment/submit", {
+      if (!res.ok) return alert("Failed to load payments");
+
+      const data = await res.json();
+      setPayments(data.payments);
+    } catch (err) {
+      console.error("Load error:", err);
+    }
+    setLoading(false);
+  };
+
+  const handleAction = async (paymentId: string, action: "APPROVE" | "REJECT") => {
+    try {
+      const res = await fetch("/api/admin/payments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount,
-          planType,
-          transactionId,
-          notes,
-        }),
+        body: JSON.stringify({ paymentId, action }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Failed to submit payment.");
+        alert(data.error || "Failed to process");
         return;
       }
 
-      setSuccess(true);
-    } catch {
-      alert("Something went wrong.");
-    } finally {
-      setSubmitting(false);
+      await loadPayments(); // refresh list
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  // LOADING
-  if (loadingUser) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
+      <div className="min-h-screen flex items-center justify-center">Loading...</div>
     );
   }
 
-  // SUCCESS SCREEN
-  if (success) {
-    const msg =
-      `Payment submitted for EstateMakers MahaRERA ₹750 Plan:\n\n` +
-      `Name: ${user?.fullName}\n` +
-      `Mobile: ${user?.mobile}\n` +
-      `Plan: Premium – ₹750\n` +
-      `Amount: ₹${amount}\n` +
-      `UPI Ref: ${transactionId}\n\n` +
-      `Please verify and activate.`;
-
-    const wa1 = `https://wa.me/${ADMIN_WA_1}?text=${encodeURIComponent(msg)}`;
-    const wa2 = `https://wa.me/${ADMIN_WA_2}?text=${encodeURIComponent(msg)}`;
-
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-6">
-        <div className="bg-green-100 border border-green-500 p-6 rounded-lg max-w-md text-center shadow">
-          <h2 className="font-bold text-xl text-green-800 mb-2">
-            Payment Submitted Successfully! ✅
-          </h2>
-
-          <p className="text-green-700 text-sm mb-4">
-            Send your payment screenshot to admin for quick activation.
-          </p>
-
-          <a
-            href={wa1}
-            target="_blank"
-            className="block w-full px-4 py-2 mb-3 bg-blue-600 text-white rounded"
-          >
-            📤 Send to Ramraje Bhosale (9892357558)
-          </a>
-
-          <a
-            href={wa2}
-            target="_blank"
-            className="block w-full px-4 py-2 mb-3 bg-blue-600 text-white rounded"
-          >
-            📤 Send to Vaishali Kamath (9699091086)
-          </a>
-
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="w-full px-4 py-2 bg-gray-700 text-white rounded"
-          >
-            Go to Dashboard →
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // MAIN PAYMENT PAGE
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-900 text-white px-6 py-4 shadow">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
-          <h1 className="text-xl md:text-2xl font-bold">
-            Buy MahaRERA Premium Plan (₹750)
-          </h1>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-sm bg-blue-700 px-4 py-2 rounded hover:bg-blue-600"
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Payment Submissions</h1>
+
+      <div className="space-y-4">
+        {payments.length === 0 && (
+          <div className="p-6 bg-gray-100 rounded">No payment submissions found.</div>
+        )}
+
+        {payments.map((p) => (
+          <div
+            key={p.id}
+            className="p-4 bg-white border rounded shadow flex justify-between items-center"
           >
-            ← Back to Dashboard
-          </button>
-        </div>
-      </header>
+            <div>
+              <p className="font-semibold">{p.user.fullName}</p>
+              <p className="text-sm text-gray-600">{p.user.email}</p>
+              <p className="text-sm text-gray-600">{p.user.mobile}</p>
+              <p className="mt-1">
+                <strong>Transaction ID:</strong> {p.transactionId}
+              </p>
+              <p>
+                <strong>Status:</strong>{" "}
+                <span
+                  className={`px-2 py-1 rounded text-white ${
+                    p.status === "PENDING"
+                      ? "bg-yellow-500"
+                      : p.status === "APPROVED"
+                      ? "bg-green-600"
+                      : "bg-red-600"
+                  }`}
+                >
+                  {p.status}
+                </span>
+              </p>
+              <p className="text-xs text-gray-400">
+                {new Date(p.createdAt).toLocaleString()}
+              </p>
+            </div>
 
-      <main className="max-w-4xl mx-auto p-6 space-y-6">
-        {/* PAYMENT QR SECTION */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg md:text-xl font-bold mb-4">
-            Step 1: Pay using UPI / QR
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-6 items-center">
-            <div className="border rounded-lg p-4 bg-gray-50 text-center">
-              <p className="font-semibold mb-2">Scan & Pay</p>
-
-              <img
-                src="/vaishali-qr.png"
-                alt="UPI QR"
-                className="mx-auto w-48 h-48 object-contain border rounded-lg bg-white shadow"
-              />
-
-              <div className="text-sm text-gray-700 mt-3">
-                <p><strong>UPI Name:</strong> {UPI_NAME}</p>
-                <p><strong>UPI ID:</strong> {UPI_ID}</p>
-                <p><strong>Mobile:</strong> {UPI_MOBILE}</p>
-                <p><strong>Amount:</strong> ₹{amount}</p>
+            {/* ACTION BUTTONS */}
+            {p.status === "PENDING" && (
+              <div className="space-x-2">
+                <button
+                  onClick={() => handleAction(p.id, "APPROVE")}
+                  className="px-4 py-2 bg-green-600 text-white rounded"
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => handleAction(p.id, "REJECT")}
+                  className="px-4 py-2 bg-red-600 text-white rounded"
+                >
+                  Reject
+                </button>
               </div>
-            </div>
-
-            <div className="bg-blue-50 border-l-4 border-blue-500 rounded p-4 text-sm text-gray-700">
-              <p className="font-semibold mb-2">Important:</p>
-              <ul className="space-y-1 list-disc pl-4">
-                <li>Pay using GPay / PhonePe / Paytm.</li>
-                <li>Copy the UPI Reference / Transaction ID.</li>
-                <li>Submit the details below for activation.</li>
-              </ul>
-            </div>
+            )}
           </div>
-        </section>
-
-        {/* SUBMIT FORM */}
-        <section className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg md:text-xl font-bold mb-4">
-            Step 2: Submit Payment Details
-          </h2>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Plan
-              </label>
-              <input
-                type="text"
-                disabled
-                value="Premium Plan – ₹750"
-                className="w-full border rounded px-3 py-2 bg-gray-100 text-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                UPI Transaction / Reference ID *
-              </label>
-              <input
-                type="text"
-                value={transactionId}
-                onChange={(e) => setTransactionId(e.target.value)}
-                placeholder="e.g. UTRXXXXXXXXX"
-                className="w-full border rounded px-3 py-2 text-sm"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Notes (optional)
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="GPay / Time / Any details"
-                className="w-full border rounded px-3 py-2 text-sm min-h-[80px]"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full md:w-auto px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 disabled:bg-gray-400"
-            >
-              {submitting ? "Submitting..." : "Submit Payment Details"}
-            </button>
-
-            <p className="text-xs text-gray-500 mt-2">
-              After admin verification, your Premium Plan will be activated.
-            </p>
-          </form>
-        </section>
-      </main>
+        ))}
+      </div>
     </div>
   );
 }
