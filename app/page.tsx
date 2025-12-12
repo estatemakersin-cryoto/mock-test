@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 "use client";
 
 import Navbar from "@/components/Navbar";
@@ -9,40 +12,57 @@ export default function HomePage() {
       <Navbar />
 
       {/* HERO SECTION */}
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-12 md:py-16 px-4 shadow-lg">
-        <div className="max-w-6xl mx-auto text-center">
+      <section className="bg-blue-900 text-white py-16 px-6">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
 
-          <div className="inline-block bg-red-600 text-white px-4 py-2 rounded-full text-sm font-bold mb-4">
-            🚨 Mandatory Certification for All Real Estate Agents
+          {/* LEFT SIDE CONTENT */}
+          <div className="space-y-6 text-center md:text-left">
+
+            <h1 className="text-3xl md:text-5xl font-bold leading-tight break-words">
+              Preparing for MahaRERA Certification Exam?
+            </h1>
+
+            <p className="text-lg md:text-xl text-blue-100 leading-relaxed">
+              Get complete preparation with 400+ MCQs, chapter-wise revision notes,
+              5 mock tests and real exam–style interface — everything you need to
+              pass with confidence.
+            </p>
+
+            {/* OFFER BOX */}
+            <div className="bg-white/20 border border-white/30 rounded-lg p-4 md:p-5 text-center md:text-left shadow-lg">
+              <p className="text-lg font-semibold text-yellow-300">
+                Premium Plan – ₹750
+              </p>
+              <p className="text-sm md:text-base text-blue-100 mt-1">
+                Includes FREE ₹1000 EstateMakers Credit =
+                <strong> 2 Months Unlimited Access</strong> (Limited Offer)
+              </p>
+            </div>
+
+            {/* CTA BUTTON */}
+            <div className="flex justify-center md:justify-start">
+              <Link
+                href="/register"
+                className="px-8 py-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg text-lg shadow-xl transition transform hover:scale-105"
+              >
+                Start Preparation – ₹750 (FREE ₹1000 Bonus)
+              </Link>
+            </div>
+
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
-            MahaRERA Certificate of Competency (COC)
-          </h1>
-
-          <h2 className="text-2xl font-bold mb-3 text-yellow-300">
-            Exam Preparation by <span className="underline">EstateMakers</span>
-          </h2>
-
-          <p className="text-lg md:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            Maharashtra&apos;s Leading Preparation Platform for Agents &amp; Developers  
-            <br />
-            <span className="font-semibold">
-              Includes Full Syllabus • Revision • Mock Tests • English + Marathi
-            </span>
-          </p>
-
-          {/* Single CTA */}
-          <div className="flex justify-center items-center mt-8">
-            <Link
-              href="/register"
-              className="px-8 py-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg text-lg shadow-xl transition transform hover:scale-105"
-            >
-              Start Preparation – ₹750
-            </Link>
+          {/* RIGHT SIDE IMAGE */}
+          <div className="flex justify-center md:justify-end">
+            <img
+              src="/hero-mocktest.png"
+              alt="MahaRERA Mock Test"
+              className="w-full max-w-md rounded-lg shadow-xl"
+            />
           </div>
+
         </div>
       </section>
+
 
       {/* WHAT IS MahaRERA COC */}
       <section className="py-10 md:py-12 bg-white">
