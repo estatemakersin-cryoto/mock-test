@@ -12,35 +12,35 @@ export default function HomePage() {
       <section className="bg-blue-900 text-white py-16 px-6">
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-10 items-center">
 
-          {/* LEFT SIDE CONTENT */}
-          <div className="space-y-6 text-center md:text-left">
+          {/* LEFT SIDE */}
+          <div className="space-y-6">
 
-            <h1 className="text-3xl md:text-5xl font-bold leading-tight break-words">
+            <h1 className="text-3xl md:text-5xl font-bold leading-tight">
               Preparing for MahaRERA Certification Exam?
             </h1>
 
-            <p className="text-lg md:text-xl text-blue-100 leading-relaxed">
+            <p className="text-lg md:text-xl text-blue-100">
               Get complete preparation with 400+ MCQs, chapter-wise revision notes,
-              5 mock tests and real exam–style interface — everything you need to
-              pass with confidence.
+              5 mock tests and real exam–style interface — everything you need to pass
+              with confidence.
             </p>
 
             {/* OFFER BOX */}
-            <div className="bg-white/20 border border-white/30 rounded-lg p-4 md:p-5 text-center md:text-left shadow-lg">
+            <div className="bg-white/20 border border-white/30 rounded-lg p-5 shadow-lg">
               <p className="text-lg font-semibold text-yellow-300">
                 Premium Plan – ₹750
               </p>
-              <p className="text-sm md:text-base text-blue-100 mt-1">
+              <p className="text-sm text-blue-100 mt-1">
                 Includes FREE ₹1000 EstateMakers Credit =
                 <strong> 2 Months Unlimited Access</strong> (Limited Offer)
               </p>
             </div>
 
             {/* CTA BUTTON */}
-            <div className="flex justify-center md:justify-start">
+            <div>
               <Link
                 href="/register"
-                className="px-8 py-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg text-lg shadow-xl transition transform hover:scale-105"
+                className="px-8 py-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-lg text-lg shadow-xl transition transform hover:scale-105 inline-block"
               >
                 Start Preparation – ₹750 (FREE ₹1000 Bonus)
               </Link>
@@ -48,8 +48,8 @@ export default function HomePage() {
 
           </div>
 
-          {/* RIGHT SIDE IMAGE */}
-          <div className="flex justify-center md:justify-end">
+          {/* RIGHT SIDE */}
+          <div className="flex justify-center">
             <img
               src="/hero-mocktest.png"
               alt="MahaRERA Mock Test"
