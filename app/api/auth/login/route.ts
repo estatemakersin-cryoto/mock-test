@@ -1,12 +1,13 @@
+// app/api/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { signToken, verifyPassword } from "@/lib/auth";
+import { signToken } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const { mobile, password } = await req.json();
+    const { mobile } = await req.json();
 
-    // Validate fields
+    // Validate mobile number
     if (!mobile || mobile.length !== 10) {
       return NextResponse.json(
         { error: "Enter valid 10-digit mobile number" },
@@ -14,15 +15,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!password) {
-      return NextResponse.json(
-        { error: "Password is required" },
-        { status: 400 }
-      );
-    }
-
-    // Find user
-    const user = await prisma.user.findFirst({
+    // Find user by mobile
+    const user = await prisma.user.findUnique({
       where: { mobile },
     });
 
@@ -33,20 +27,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Password check
-    const isValid = await verifyPassword(password, user.passwordHash);
-    if (!isValid) {
-      return NextResponse.json(
-        { error: "Incorrect password" },
-        { status: 401 }
-      );
-    }
-
-    // Create token
+    // Create token (NO password verification)
     const token = await signToken({
       id: user.id,
       fullName: user.fullName,
       mobile: user.mobile,
+      email: user.email,
       isAdmin: user.isAdmin,
       packagePurchased: user.packagePurchased,
     });
@@ -60,7 +46,7 @@ export async function POST(req: NextRequest) {
       redirect,
     });
 
-    // Cookie configuration for Vercel
+    // Cookie configuration
     const isProd = process.env.NODE_ENV === "production";
 
     res.cookies.set("auth-token", token, {

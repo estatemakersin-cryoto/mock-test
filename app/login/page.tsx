@@ -1,119 +1,122 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [mobile, setMobile] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPw, setShowPw] = useState(false);
-
-  const [error, setError] = useState("");
+  const [mobile, setMobile] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleLogin = async (e: any) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
-    if (mobile.length !== 10) {
-      setError("Enter valid 10-digit mobile number");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, password }),
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          mobile,
+          password
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        setError(data.error || 'Login failed');
         setLoading(false);
         return;
       }
 
-      // Redirect based on response
+      // Redirect on success
       router.push(data.redirect);
+      router.refresh();
 
     } catch (err) {
-      setError("Something went wrong");
-    } finally {
+      setError('Something went wrong');
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
+        <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
 
-        <form onSubmit={handleLogin} className="space-y-6">
-
-          {/* MOBILE NUMBER */}
+        <form onSubmit={handleLogin} className="space-y-4">
+          {/* Mobile Number Input */}
           <div>
-            <label className="block mb-1 font-medium">Mobile Number</label>
-            <div className="flex items-center border rounded-lg px-3 py-2">
-              <span className="text-gray-500 mr-2">+91</span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Mobile Number
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-3 text-gray-500">+91</span>
               <input
-                type="number"
-                className="w-full outline-none"
-                placeholder="Enter 10-digit mobile"
+                type="tel"
                 value={mobile}
-                onChange={(e) => setMobile(e.target.value.slice(0, 10))}
+                onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                placeholder="9892357558"
+                className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                maxLength={10}
+                required
               />
             </div>
           </div>
 
-          {/* PASSWORD */}
+          {/* Password Input */}
           <div>
-            <label className="block mb-1 font-medium">Password</label>
-            <div className="flex items-center border rounded-lg px-3 py-2 relative">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <div className="relative">
               <input
-                type={showPw ? "text" : "password"}
-                className="w-full outline-none"
-                placeholder="Enter password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
               />
-              <span
-                onClick={() => setShowPw(!showPw)}
-                className="absolute right-3 top-2 cursor-pointer text-sm text-blue-600"
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-blue-600 text-sm hover:underline"
               >
-                {showPw ? "Hide" : "Show"}
-              </span>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
             </div>
           </div>
 
-          {/* ERROR */}
-          {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+          {/* Error Message */}
+          {error && (
+            <div className="text-red-600 text-sm text-center bg-red-50 py-2 rounded">
+              {error}
+            </div>
+          )}
 
-          {/* LOGIN BUTTON */}
+          {/* Login Button */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400"
+            disabled={loading || mobile.length !== 10 || !password}
+            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
           >
-            {loading ? "Please wait..." : "Login"}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
-
-          {/* REGISTER LINK */}
-          <p className="text-center text-sm mt-3">
-            Not registered?{" "}
-            <span
-              className="text-blue-700 font-semibold cursor-pointer"
-              onClick={() => router.push("/register")}
-            >
-              Create Account
-            </span>
-          </p>
         </form>
+
+        {/* Registration Link */}
+        <p className="text-center text-sm text-gray-600 mt-6">
+          Not registered?{' '}
+          <a href="/register" className="text-blue-600 hover:underline">
+            Create Account
+          </a>
+        </p>
       </div>
     </div>
   );

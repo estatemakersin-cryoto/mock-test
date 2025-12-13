@@ -30,37 +30,40 @@ model User {
   fullName       String
   email          String  @unique
   mobile         String? @unique
-  registrationNo String  @unique
-  passwordHash   String
+
+  // Test access
+  packagePurchased     Boolean   @default(false)
+  testsUnlocked        Int       @default(0)
+  testsCompleted       Int       @default(0)
+  testsRemaining       Int       @default(0)
+
+  // Attempts
+  attempts        TestAttempt[]
+  revisionAttempts Int      @default(0)
 
   // Access & Role
   isAdmin              Boolean   @default(false)
-  packagePurchased     Boolean   @default(false)
+  registrationNo       String    @unique
+  passwordHash         String
   packagePurchasedDate DateTime?
   packageExpiry        DateTime?
 
-  // Test access
-  testsRemaining Int @default(0)
-  testsUnlocked  Int @default(0)
-  testsCompleted Int @default(0)
+  // System data
+  createdAt DateTime @default(now())
 
   // Referral System
   referralCount Int     @default(0)
   referredBy    String?
   referralCode  String?
 
-  // System data
-  createdAt        DateTime @default(now())
-  revisionAttempts Int      @default(0)
-
   // Relations
-  attempts            TestAttempt[]
-  referralsMade       Referral[]    @relation("UserReferrals")
-  referralAsConverted Referral[]    @relation("ReferralConvertedUser")
+  referralsMade       Referral[] @relation("UserReferrals")
+  referralAsConverted Referral[] @relation("ReferralConvertedUser")
 
   // Payments
   paymentProofs PaymentProof[]
 }
+
 
 model Referral {
   id Int @id @default(autoincrement())
