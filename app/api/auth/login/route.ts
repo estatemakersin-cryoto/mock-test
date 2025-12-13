@@ -1,16 +1,23 @@
-// app/api/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { signToken } from "@/lib/auth";
+import { signToken, verifyPassword } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const { mobile } = await req.json();
+    const { mobile, password } = await req.json();
 
     // Validate mobile number
     if (!mobile || mobile.length !== 10) {
       return NextResponse.json(
         { error: "Enter valid 10-digit mobile number" },
+        { status: 400 }
+      );
+    }
+
+    // Validate password
+    if (!password) {
+      return NextResponse.json(
+        { error: "Password is required" },
         { status: 400 }
       );
     }
@@ -27,7 +34,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create token (NO password verification)
+    // Verify password
+    const isValid = await verifyPassword(password, user.passwordHash);
+    if (!isValid) {
+      return NextResponse.json(
+        { error: "Incorrect password" },
+        { status: 401 }
+      );
+    }
+
+    // Create token
     const token = await signToken({
       id: user.id,
       fullName: user.fullName,
